@@ -3,13 +3,54 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import ErrorPage from './error-page';
+import ContactIndex from './routes/ContactIndex';
+import AddContact from './routes/AddContact';
+import ContactDetail from './routes/ContactDetail';
+
+
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <ErrorPage />,
+    children : [
+      {
+        errorElement: <ErrorPage />,
+       
+        children: [
+          { index: true, element: <ContactIndex /> },
+          {
+            path:"/add",
+            element: <AddContact />,
+            
+            
+          },
+          {
+            path:"/contact",
+            element: <ContactDetail />,
+            
+          }
+          
+        ],
+      },
+    ],
+  },
+]);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+    
+    <RouterProvider router={router} />
+    
   </React.StrictMode>
 );
 
