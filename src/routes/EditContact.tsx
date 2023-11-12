@@ -1,20 +1,20 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 import { jsx } from "@emotion/react"
-import { Suspense, useState } from "react"
+import { Suspense, useContext, useState } from "react"
 import LoadingState from "../components/LoadingState"
 import { createStyles } from "../types/emotion-styles"
 import { Palette, Theme } from "../css/palette"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Form, Link, Navigate } from "react-router-dom"
+import { Form, Link, Navigate, useLocation } from "react-router-dom"
 import { mq } from "../css/breakpoints"
 import { useMutation, useQuery } from "@apollo/client"
-import { AddContactVars, ContactData,Phone } from "../gql/schema"
-import { ADD_CONTACT, GET_NAMES } from "../gql/queries"
+import { EditContactVars, ContactData, ContactVars } from "../gql/schema"
+import { EDIT_CONTACT, GET_CONTACT_BY_ID, GET_NAMES } from "../gql/queries"
 import ErrorState from "../components/ErrorState"
+import { FavoriteContext } from "../App"
 
-
-const AddContactStyles = createStyles({
+const EditContactStyles = createStyles({
 
     toolbar : {
         width: "100%",
@@ -161,47 +161,93 @@ const AddContactStyles = createStyles({
 })
 
 
+const EditContact = () => {
+    const location = useLocation()
+    const {data: favorites, saveFavorites} = useContext(FavoriteContext);
 
+    const queryParameters = new URLSearchParams(location.search)
+    const contactId = queryParameters.get("id")
 
-
-const AddContact = () => {
-    
     const [checkError, setCheckError] = useState<Error | undefined>(undefined)
-    const [phoneNumbers, setPhoneNumbers] = useState<Phone[]>([])
-    const [currNumber, setCurrNumber] = useState<string>("")
 
-    const [addContact, {loading, data: addSuccess}] = useMutation<ContactData, AddContactVars>(ADD_CONTACT,{
+    const [editContact, {loading: editLoading, error: editError, data: editSuccess}] = useMutation<ContactData, EditContactVars>(EDIT_CONTACT,{
         onError() {
             setCheckError(new Error("Phone number already exist"))
         },
     });
-    const { error: fetchNameError, data: fetchNameData} = useQuery<ContactData, AddContactVars>(GET_NAMES, {
+    const { error: fetchNameError, data: fetchNameData} = useQuery<ContactData, EditContactVars>(GET_NAMES, {
         fetchPolicy: 'network-only',
       });
+
+      const {loading, error, data} = useQuery<ContactData, ContactVars>(GET_CONTACT_BY_ID, {
+        variables: {
+            id: Number(contactId)
+        },
+        fetchPolicy: "network-only"
+    })
+
     
     
-    
+
+    if (editLoading) return <LoadingState />
+    if (editError) return <ErrorState msg={editError.message} />
 
     if (loading) return <LoadingState />
-    if (fetchNameError)  return <ErrorState msg={fetchNameError.message}/>
-    if (addSuccess) return <Navigate to="/" />
-    if (fetchNameData){
+    if (error) return <ErrorState msg={error.message} />
 
-    const checkNames = (data : AddContactVars) => {
+    if (fetchNameError)  return <ErrorState msg={fetchNameError.message}/>
+    if (editSuccess) {
+
+        if(favorites){
+            try {
+                console.log(editSuccess);
+                
+                const updatedFavorites = favorites.map((prev) => {
+                    if (prev.id === Number(contactId)) {
+                        prev.first_name = editSuccess.update_contact_by_pk!.first_name
+                        prev.last_name = editSuccess.update_contact_by_pk!.last_name
+                        return prev
+                    }
+                    return prev
+                })
+                localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+                saveFavorites(updatedFavorites)
+            } catch(err: any) {
+                return <ErrorState msg={err.message}/>
+            }
+            
+            
+        } 
+
+        return <Navigate to={`/contact?id=${contactId}`} />
+    }
+    if (fetchNameData && data){
+
+    
+
+    const contactData = data!.contact_by_pk
+    if(!contactData) return <ErrorState msg="The page you are looking for does not exist"/>
+
+    
+
+    
+
+    const checkNames = (data : EditContactVars) => {
         // eslint-disable-next-line
         const format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
-        const {first_name : newFirstName, last_name: newLastName} = data
-        console.log(data)
-        if (format.test(newFirstName) || format.test(newLastName))
+        const {first_name : newFirstName, last_name: newLastName} = data._set
+      
+        if (format.test(newFirstName!) || format.test(newLastName!))
             throw new Error("Name cannot contain special characters")
         
-        fetchNameData.contact.forEach(({first_name, last_name}) => {
-            if((newFirstName === first_name && newLastName === last_name)) 
-                throw new Error("Name already exists")
+        if(newFirstName !== contactData.first_name || newLastName !== contactData.last_name) {
 
-        if(data.phones.length === 0)
-            throw new Error("Please add at least 1 number")
-        })
+            fetchNameData.contact.forEach(({first_name, last_name}) => {
+                if((newFirstName === first_name && newLastName === last_name)) 
+                    throw new Error("Name already exists")
+            })
+        }
+        
     }
         
 
@@ -209,30 +255,33 @@ const AddContact = () => {
         <Suspense fallback={<LoadingState />}>
             
             
-            <div css={AddContactStyles.toolbar}>
+            <div css={EditContactStyles.toolbar}>
                 <Link
                 aria-label="back home"
-                to={"/"}
-                css={([AddContactStyles.toolButton, Theme.backgroundSecondary])} 
+                to={`/contact?id=${contactId}`}
+                css={([EditContactStyles.toolButton, Theme.backgroundSecondary])} 
                 >
                     <FontAwesomeIcon icon={"arrow-left"} fontSize={"1.25em"} color={Palette.textSecondary} />
                 </Link>
             </div>
 
-            <div css={AddContactStyles.formWrapper}>
+            <div css={EditContactStyles.formWrapper}>
                 
                 <Form onSubmit={(e) => {
                     e.preventDefault()
                     const formData = new FormData(e.currentTarget)
-                    
-                    const data : AddContactVars = {
+                    const data : EditContactVars = {
+                        id: contactData.id,
+                        _set : {
                         first_name : String(formData.get("first_name")),
                         last_name : String(formData.get("last_name")),
-                        phones : phoneNumbers,
+                       
+                        }
                     }
+
                     try {
                         checkNames(data)
-                        addContact({variables : data})
+                        editContact({variables : data})
                     } catch(err : any) {
                         setCheckError(err)
                     }
@@ -240,131 +289,70 @@ const AddContact = () => {
                     
                     
                 }}>
-                    <div css={AddContactStyles.toolbar}>
+                    <div css={EditContactStyles.toolbar}>
                     <h3 css={Theme.textPrimary}>Add New Contact</h3>
-                    <button type="submit" css={AddContactStyles.saveButton}>
+                    <button type="submit" css={EditContactStyles.saveButton}>
                         Save
                     </button>
                     </div>
                     
-                    <hr css={AddContactStyles.hr}/>
+                    <hr css={EditContactStyles.hr}/>
 
                     {checkError && (
-                    <div css={AddContactStyles.error}>
+                    <div css={EditContactStyles.error}>
                         <div css={{padding: "2em"}}>
                             <h5 css={Theme.textPrimary}>Error : {checkError.message}</h5>
                         </div>
-                        <button css={AddContactStyles.dismissButton} onClick={() => {setCheckError(undefined)}}>
+                        <button css={EditContactStyles.dismissButton} onClick={() => {setCheckError(undefined)}}>
                             Dismiss
                         </button>
                     </div>
                     )}
-                        <div css={AddContactStyles.formGroup}>
-                            <div css={AddContactStyles.inputWrapper}>
+                        <div css={EditContactStyles.formGroup}>
+                            <div css={EditContactStyles.inputWrapper}>
 
                                 <label 
                                 htmlFor="#firstname" 
-                                css={([Theme.textSecondary, AddContactStyles.label])}
+                                css={([Theme.textSecondary, EditContactStyles.label])}
                                 >
                                 First Name
                                 </label>
 
                                 <input 
                                 type="text" 
-                                css={AddContactStyles.input} 
+                                css={EditContactStyles.input} 
                                 id="firstname"
                                 name="first_name"
                                 placeholder="Enter first name . . ."
+                                defaultValue={contactData.first_name}
                                 required
                                 />
 
                             </div>
-                            <div css={AddContactStyles.inputWrapper}>
+                            <div css={EditContactStyles.inputWrapper}>
 
                                 <label 
                                 htmlFor="#lastname" 
-                                css={([Theme.textSecondary, AddContactStyles.label])}
+                                css={([Theme.textSecondary, EditContactStyles.label])}
                                 >
                                 Last Name
                                 </label>
 
                                 <input 
                                 type="text" 
-                                css={AddContactStyles.input} 
+                                css={EditContactStyles.input} 
                                 id="lastname"
                                 name="last_name"
                                 placeholder="Enter last name . . ."
+                                defaultValue={contactData.last_name}
                                 required
                                 />
 
                             </div>
 
                         </div>
-                        <div css={AddContactStyles.formGroup}>
-                            <div css={AddContactStyles.inputWrapper}>
-
-                                <label 
-                                htmlFor="#phonenumber" 
-                                css={([Theme.textSecondary, AddContactStyles.label])}
-                                >
-                                Phone Number{`(s)`}
-                                </label>
-
-                                <input 
-                                type="text" 
-                                css={AddContactStyles.input} 
-                                id="phonenumber"
-                                name="phone"
-                                placeholder="Enter phone number . . ."
-                                value={currNumber}
-                                onChange={(e) => {setCurrNumber(e.target.value)}}
-                                
-                                />
-
-                            </div>
-                            <div css={AddContactStyles.inputWrapper} >
-                                <button 
-                                 css={[AddContactStyles.dismissButton,Theme.backgroundHover, {":hover" : {backgroundColor: "GrayText"}, marginRight:".5em"}]}
-                                 onClick={(e) => {
-                                    e.preventDefault()
-                                    if(currNumber)
-                                   
-                                    setPhoneNumbers((prev) => [...prev,{number: currNumber}])
-                                    }}>
-                                    <FontAwesomeIcon icon={"plus"}/>
-                                </button>
-                                {phoneNumbers && phoneNumbers.length > 0 && (
-                                    <button 
-                                    css={[AddContactStyles.dismissButton,Theme.backgroundHover, {":hover" : {backgroundColor: "GrayText"}}]}
-                                    onClick={(e) => {
-                                       e.preventDefault()
-                                       if(currNumber)
-                                      
-                                       setPhoneNumbers((prev) => {
-                                           prev.pop()
-                                           return [...prev]
-                                       })
-                                       }}>
-                                       <FontAwesomeIcon icon={"minus"}/>
-                                   </button>
-                                )}
-                                
-                            </div>
-                            
-                        </div>
-                        {phoneNumbers && phoneNumbers.length > 0 && (
-                            <div css={AddContactStyles.formGroup} >
-                            <div>
-                                <label css={[AddContactStyles.label, Theme.textPrimary]}>Adding Numbers :</label>
-                                <ul css={Theme.textPrimary}>
-                                    {phoneNumbers.map((num,i) => {
-                                        return <li key={i} >{num.number}</li>
-                                    })}
-                                </ul>
-                            </div>
-                            
-                        </div>
-                        )}
+                        
+                        
                         
                 </Form>
                                 
@@ -375,4 +363,4 @@ const AddContact = () => {
     return null
 }
 
-export default AddContact
+export default EditContact

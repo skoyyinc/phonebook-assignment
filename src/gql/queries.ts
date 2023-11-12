@@ -118,3 +118,33 @@ export const DELETE_CONTACT = gql`
     }
   }
 `
+
+export const EDIT_CONTACT = gql`
+
+  mutation EditContactById($id: Int!, $_set: contact_set_input) {
+    update_contact_by_pk(pk_columns: {id: $id}, _set: $_set) {
+      id
+      first_name
+      last_name
+      phones {
+        number
+      }
+    }
+  }
+
+`
+
+export const DELETE_NUMBER = gql`
+
+mutation DeleteNumber($contact_id: Int!, $number: String! ) {
+  delete_phone_by_pk(contact_id : $contact_id, number: $number) {
+    contact {
+      id
+      phones {
+        number
+      }
+    }
+  }
+}
+
+`

@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { css, jsx } from '@emotion/react'
+import { jsx } from '@emotion/react'
 import { createStyles } from "../types/emotion-styles"
 import { Palette, Theme } from '../css/palette'
 import { mq } from '../css/breakpoints'
@@ -16,6 +16,8 @@ const ContactWrapperStyles = createStyles({
         width:"100%",
         height: "auto",
         paddingLeft: "0",
+        paddingRight: "0",
+
         [mq[1]] : {
             paddingLeft: "1.8em",
         }

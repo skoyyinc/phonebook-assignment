@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { css, jsx } from '@emotion/react'
+import { jsx } from '@emotion/react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { createStyles } from "../types/emotion-styles"
 import { Palette } from '../css/palette'

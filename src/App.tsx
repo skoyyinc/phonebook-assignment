@@ -10,12 +10,12 @@ import Navbar from './components/Navbar';
 import { globalStyles } from './css/globalStyles'
 import MainWrapper from './components/MainWrapper';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faAddressBook, faArrowLeft, faChevronDown, faChevronLeft, faChevronRight, faGhost, faMinus, faPlus, faRedo, faSearch, faSpinner, faStar, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faAddressBook, faArrowLeft, faChevronDown, faChevronLeft, faChevronRight, faEdit, faGhost, faMinus, faPlus, faRedo, faSearch, faSpinner, faStar, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
 import { ApolloClient, ApolloProvider, InMemoryCache, NormalizedCacheObject } from '@apollo/client';
 import { CachePersistor, LocalStorageWrapper } from 'apollo3-cache-persist';
 
 import { Contact } from './gql/schema';
-import LoadingState from './components/LoadingState';
+
 
 
 library.add(
@@ -33,7 +33,8 @@ library.add(
    faArrowLeft,
    faMinus, 
    faUser,
-   faTrash
+   faTrash,
+   faEdit
    )
 
 export const CacheContext = createContext<CachePersistor<NormalizedCacheObject> | undefined>(undefined)

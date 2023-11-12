@@ -8,10 +8,10 @@ import { Contact } from "../gql/schema"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useCallback, useContext } from "react"
 import { CacheContext, FavoriteContext } from "../App"
-import { Navigate, redirect, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { useMutation } from "@apollo/client"
 import { DELETE_CONTACT } from "../gql/queries"
-import LoadingState from "./LoadingState"
+import { mq } from "../css/breakpoints"
 
 
 
@@ -36,7 +36,10 @@ const ContactTableStyles = createStyles({
         "& td" : {
             textAlign: "left",
             fontSize: "12px",
-            padding: "1.2em",
+            padding: "0.5em",
+            [mq[1]] : {
+                padding: "1.2em"
+            },
             color: Palette.textPrimary,
             overflow: "hidden",
             textOverflow: "ellipsis"
@@ -86,8 +89,13 @@ const ContactTableStyles = createStyles({
         alignItems: "center",
         "& ul" : {
             listStyleType: "none", 
-            padding:0, width: "9em", 
+            padding:0, 
+            width: "5em!important", 
             textOverflow: "ellipsis",
+            [mq[1]] : {
+                width: "8em!important", 
+
+            },
             "& li": {
                 overflow:"hidden" ,
                 textOverflow: "ellipsis"
@@ -98,7 +106,7 @@ const ContactTableStyles = createStyles({
         display: "flex",
         justifyContent: "start", 
         alignItems: "center", 
-        width: "25%" 
+        width: "50%" 
     }
     
 })
@@ -107,7 +115,7 @@ const ContactTableStyles = createStyles({
 const ContactTable = ({ data, isFavorite} : { data: Contact[] | undefined, isFavorite : boolean}) => {
     let navigate = useNavigate(); 
     const {data: favorites, saveFavorites} = useContext(FavoriteContext);
-    const [deleteContact, {loading: deleteLoading, error: deleteError, data: deleted}] = useMutation(DELETE_CONTACT)
+    const [deleteContact, { error: deleteError, data: deleted}] = useMutation(DELETE_CONTACT)
     const persistor = useContext(CacheContext)
 
     const clearCache = useCallback(() => {
@@ -118,7 +126,7 @@ const ContactTable = ({ data, isFavorite} : { data: Contact[] | undefined, isFav
         }, [persistor]);
 
     const AddToFavorites = useCallback((contact : Contact) => {
-        console.log(favorites)
+       
         if(favorites){
             try {
                 const updatedFavorites = [...favorites, contact]
@@ -134,7 +142,7 @@ const ContactTable = ({ data, isFavorite} : { data: Contact[] | undefined, isFav
     },[favorites,saveFavorites])
 
     const RemoveFromFavorites = useCallback((id : number) => {
-        console.log(favorites)
+        
         if(favorites){
             try {
                 const updatedFavorites = favorites.filter((contact) =>  contact.id !== id)
@@ -247,7 +255,7 @@ const ContactTable = ({ data, isFavorite} : { data: Contact[] | undefined, isFav
                             )
                         
                     }) : (
-                        <tr css={({":hover" : {backgroundColor : Palette.backgroundHover+"!important"}})}>
+                        <tr css={({":hover" : {backgroundColor : Palette.backgroundHover+"!important", cursor: "default"}})}>
                             <td css={({ padding:"2em", color: Palette.textPrimary, justifyContent: "center", maxWidth: "4rem"})}>
                                 <p css={{width: "10rem"}}>No data found</p>
                             </td>

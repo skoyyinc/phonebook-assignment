@@ -4,7 +4,7 @@
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { createStyles } from "../types/emotion-styles"
-import { css, jsx } from "@emotion/react"
+import { jsx } from "@emotion/react"
 import { Theme } from "../css/palette"
 
 const ErrorStateStyles = createStyles({

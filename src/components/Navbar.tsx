@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { css, jsx } from '@emotion/react'
+import { jsx } from '@emotion/react'
 import MaxWidthWrapper from "./MaxWidthWrapper";
 import { createStyles } from '../types/emotion-styles';
 import { Palette, Theme } from '../css/palette';
@@ -184,7 +184,7 @@ const Navbar = () => {
                         {isSearching && (
                             <div css={([NavbarStyles.searchSuggestionWrapper, !isSearching ? Theme.backgroundSecondary : Theme.backgroundWhite, Theme.textSecondary])}  >
                                 <ul css={NavbarStyles.searchSuggestionList}>
-                                    <AutoComplete q={searchTerm}/>
+                                    <AutoComplete q={searchTerm} setIsSearching={setIsSearching}/>
                                 </ul>
                             </div>
                         )}

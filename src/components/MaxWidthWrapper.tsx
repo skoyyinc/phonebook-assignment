@@ -2,7 +2,7 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/react'
 import { createStyles } from '../types/emotion-styles'
-import { css } from "@emotion/react"
+
 import { ReactNode } from "react"
 
 const MaxWidthWrapperStyles = createStyles({

@@ -11,6 +11,7 @@ import ErrorPage from './error-page';
 import ContactIndex from './routes/ContactIndex';
 import AddContact from './routes/AddContact';
 import ContactDetail from './routes/ContactDetail';
+import EditContact from './routes/EditContact';
 
 
 
@@ -34,6 +35,11 @@ const router = createBrowserRouter([
           {
             path:"/contact",
             element: <ContactDetail />,
+            
+          },
+          {
+            path:"/edit",
+            element: <EditContact />,
             
           }
           

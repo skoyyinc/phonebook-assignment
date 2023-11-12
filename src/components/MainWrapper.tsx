@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { css, jsx } from '@emotion/react'
+import { jsx } from '@emotion/react'
 import { Palette } from "../css/palette"
 import { createStyles } from "../types/emotion-styles"
 import MaxWidthWrapper from "./MaxWidthWrapper"

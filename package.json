@@ -1,7 +1,7 @@
 {
   "name": "phonebook-assignment",
   "version": "0.1.0",
-  "homepage": "https://skoyyinc.github.io/",
+
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.8.7",

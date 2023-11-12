@@ -12,8 +12,25 @@ export interface Contact {
   
 export interface ContactData {
     contact: Contact[];
-    contact_by_pk? : Contact
+    contact_by_pk? : Contact,
+    update_contact_by_pk? : Contact,
+    
+
   }
+
+export interface AddNumberReturnData {
+    insert_phone : {
+      returning : {
+        contact: Contact
+      }[]
+    }
+}
+
+export interface DeleteNumberReturnData {
+  delete_phone_by_pk : {
+    contact : Contact
+  }
+}
 
 export interface ContactVars {
     offset? : number,
@@ -37,4 +54,17 @@ export interface AddNumberVars {
 
 export interface DeleteContactVars {
   id: number
+}
+
+export interface DeleteNumberVars {
+  contact_id: number,
+  number: string
+}
+
+export interface EditContactVars {
+  id : number,
+  _set : {
+    first_name? :string,
+    last_name?: string,
+  }
 }

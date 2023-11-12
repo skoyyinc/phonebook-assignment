@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { css , jsx} from "@emotion/react"
+import {  jsx} from "@emotion/react"
 import { createStyles } from "../types/emotion-styles"
 import { Palette } from "../css/palette"
 import { useQuery } from "@apollo/client"
@@ -26,7 +26,7 @@ const AutoCompleteStyles = createStyles({
     }
 })
 
-const AutoComplete = ({q} : {q: string}) => {
+const AutoComplete = ({q, setIsSearching} : {q: string, setIsSearching : React.Dispatch<React.SetStateAction<boolean>>}) => {
     const navigate = useNavigate()
     const searchTerm = q === "" ? q : `${q}%`
     //query to get suggestions
@@ -53,7 +53,11 @@ const AutoComplete = ({q} : {q: string}) => {
         {data && data!.contact.length > 0 ? data?.contact.map(({id, first_name, last_name, phones}) => {
             return (
                 <li 
-                 onClick={() => {navigate(`/contact?id=${id}`)}}
+                 onClick={() => {
+                    
+                    navigate(`/contact?id=${id}`)
+                    setIsSearching(false)
+                }}
                  css={([AutoCompleteStyles.searchSuggestionListItem])} 
                  key={id}>
                   <h6>{`${first_name}, ${last_name}`}</h6>
