@@ -6,7 +6,7 @@ import { jsx } from "@emotion/react"
 import ErrorState from "./ErrorState"
 import { Contact } from "../gql/schema"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useCallback, useContext } from "react"
+import { useCallback, useContext, useEffect } from "react"
 import { CacheContext, FavoriteContext } from "../App"
 import { useNavigate } from "react-router-dom"
 import { useMutation } from "@apollo/client"
@@ -157,12 +157,15 @@ const ContactTable = ({ data, isFavorite} : { data: Contact[] | undefined, isFav
       
     },[favorites,saveFavorites])
     
-    
+    useEffect(() => {
+        if(deleted) {
+            clearCache()
+            window.location.reload()
+        }
+    },[deleted])
+
     if(deleteError) return <ErrorState msg={deleteError.message}/>
-    if(deleted) {
-        clearCache()
-        window.location.reload()
-    }
+    
 
 
     return (

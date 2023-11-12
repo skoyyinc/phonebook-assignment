@@ -2,7 +2,7 @@
 /** @jsx jsx */
 import { Suspense, useCallback, useContext, useEffect, useState } from "react"
 import LoadingState from "../components/LoadingState"
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useMutation, useQuery } from "@apollo/client"
 import { ADD_NUMBER_TO_CONTACT, DELETE_CONTACT, DELETE_NUMBER, GET_CONTACT_BY_ID } from "../gql/queries"
 import { AddNumberReturnData, AddNumberVars, ContactData, ContactVars, DeleteNumberReturnData, DeleteNumberVars } from "../gql/schema"
@@ -160,6 +160,9 @@ const ContactDetailStyles = createStyles({
 const ContactDetail = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const [isAdding, setIsAdding] = useState<boolean>(false)
+    const queryParameters = new URLSearchParams(location.search)
+    const contactId = queryParameters.get("id")
     const [addNumber, {loading: addLoading, error: addError, data: addSuccess}] = useMutation<AddNumberReturnData>(ADD_NUMBER_TO_CONTACT)
     const [deleteContact, {loading: deleteLoading, error: deleteError, data: deleted}] = useMutation(DELETE_CONTACT)
     const [deleteNumber, { error: deleteNumError, data: numDeleted}] = useMutation<DeleteNumberReturnData, DeleteNumberVars>(DELETE_NUMBER)
@@ -237,9 +240,7 @@ const ContactDetail = () => {
 
     
 
-    const [isAdding, setIsAdding] = useState<boolean>(false)
-    const queryParameters = new URLSearchParams(location.search)
-    const contactId = queryParameters.get("id")
+    
 
     const {loading, error, data} = useQuery<ContactData, ContactVars>(GET_CONTACT_BY_ID, {
         variables: {
@@ -248,31 +249,40 @@ const ContactDetail = () => {
         fetchPolicy: "network-only"
     })
 
+
     useEffect(() => {
-        setIsAdding(false)
-    },[data])
+        if (addSuccess) { 
+            UpdateFavOnAdd(Number(contactId), addSuccess)
+        }
+    }, [addSuccess])
+
+    useEffect(() => {
+        if (deleted) {
+            RemoveFromFavorites(Number(contactId))
+            clearCache()
+            navigate("/")
+        } 
+    }, [deleted])
+
+    useEffect(() => {
+        if(numDeleted) {
+            UpdateFavOnDelNum(Number(contactId), numDeleted)
+        }
+    }, [numDeleted])
 
     if (addLoading) return <LoadingState />
     if (addError) return <ErrorState msg={"Phone number already exists"} />
     
 
-
-    if (addSuccess) { 
-        UpdateFavOnAdd(Number(contactId), addSuccess)
-    }
+    
+    
     
     if (deleteLoading) return <LoadingState />
     if (deleteError) return <ErrorState msg={deleteError.message} />
-    if (deleted) {
-        RemoveFromFavorites(Number(contactId))
-        clearCache()
-        return <Navigate to={"/"}/>
-    } 
+    
 
     if (deleteNumError) return <ErrorState msg={deleteNumError.message} />
-    if(numDeleted) {
-        UpdateFavOnDelNum(Number(contactId), numDeleted)
-    }
+    
 
     if (loading) return <LoadingState />
     if (error) return <ErrorState msg={error.message} />
